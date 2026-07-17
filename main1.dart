@@ -1791,7 +1791,6 @@ class ProfileScreen extends StatelessWidget {
     return const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9), indent: 68, endIndent: 20);
   }
 }
-
 // --- PARKING HISTORY SCREEN MODULE ---
 class ParkingHistoryScreen extends StatefulWidget {
   const ParkingHistoryScreen({super.key});

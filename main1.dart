@@ -1599,9 +1599,31 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     const Color cardColor = Colors.white;
     const Color backgroundColor = Color(0xFFF0F4F8);
-    const Color primaryBlue = Color(0xFF0066FF);
-    const Color textColor = Color(0xFF1E293B);
-    const Color subtitleColor = Color(0xFF64748B);
+
+    // Function to show contact info
+    void showSupportDialog() {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Help & Support'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Email: support.smartpark@gmail.com'),
+              SizedBox(height: 10),
+              Text('Phone: +9779762111254'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -1614,6 +1636,7 @@ class ProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 10),
+                // PROFILE HEADER
                 Row(
                   children: [
                     Stack(
@@ -1621,7 +1644,7 @@ class ProfileScreen extends StatelessWidget {
                         const CircleAvatar(
                           radius: 38,
                           backgroundColor: Color(0xFFE6F0FF),
-                          child: Icon(Icons.person, size: 40, color: primaryBlue),
+                          child: Icon(Icons.person, size: 40, color: Color(0xFF0066FF)),
                         ),
                         Positioned(
                           bottom: 0,
@@ -1632,11 +1655,7 @@ class ProfileScreen extends StatelessWidget {
                               color: Color(0xFF10B981),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
-                              Icons.check,
-                              size: 14,
-                              color: Colors.white,
-                            ),
+                            child: const Icon(Icons.check, size: 14, color: Colors.white),
                           ),
                         ),
                       ],
@@ -1645,38 +1664,13 @@ class ProfileScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Aarav Sharma',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'aarav.sharma@example.com',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: subtitleColor,
-                          ),
-                        ),
+                        const Text('Aarav Sharma', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        const Text('aarav.sharma@example.com', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
                         const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE6F0FF),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFCCE0FF)),
-                          ),
-                          child: const Text(
-                            'Verified Driver',
-                            style: TextStyle(
-                              color: primaryBlue,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          decoration: BoxDecoration(color: const Color(0xFFE6F0FF), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFCCE0FF))),
+                          child: const Text('Verified Driver', style: TextStyle(color: Color(0xFF0066FF), fontSize: 11, fontWeight: FontWeight.w600)),
                         ),
                       ],
                     ),
@@ -1689,19 +1683,9 @@ class ProfileScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0066FF), Color(0xFF0044B3)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    gradient: const LinearGradient(colors: [Color(0xFF0066FF), Color(0xFF0044B3)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                     borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryBlue.withValues(alpha: 0.25),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      )
-                    ],
+                    boxShadow: [BoxShadow(color: const Color(0xFF0066FF).withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 8))],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1709,117 +1693,40 @@ class ProfileScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'SmartPark Wallet',
-                            style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
-                          ),
+                          const Text('SmartPark Wallet', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
                           Icon(Icons.account_balance_wallet_rounded, color: Colors.white.withValues(alpha: 0.9)),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        'Rs. 1,240.00',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                      const Text('Rs. 1,240.00', style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.add_circle_outline, size: 18),
+                          label: const Text('Top Up', style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF0066FF), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.add_circle_outline, size: 18),
-                              label: const Text('Top Up', style: TextStyle(fontWeight: FontWeight.bold)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: primaryBlue,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.history, size: 18, color: Colors.white),
-                              label: const Text('Transactions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.white.withValues(alpha: 0.6)),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 24),
 
                 // MY GARAGE
-                const Text(
-                  'My Garage',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
+                const Text('My Garage', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFCCE0FF)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryBlue.withValues(alpha: 0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFCCE0FF))),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE6F0FF),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.two_wheeler_rounded, color: primaryBlue, size: 26),
-                      ),
+                      Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFFE6F0FF), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF0066FF), size: 26)),
                       const SizedBox(width: 14),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Active Vehicle',
-                              style: TextStyle(color: subtitleColor, fontSize: 11),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'BA 2 PA',
-                              style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.edit_rounded, color: primaryBlue, size: 20),
-                      )
+                      const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Active Vehicle', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)), Text('BA 2 PA', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 16))])),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.edit_rounded, color: Color(0xFF0066FF), size: 20))
                     ],
                   ),
                 ),
@@ -1829,127 +1736,29 @@ class ProfileScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFCCE0FF)),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_rounded, color: primaryBlue, size: 20),
-                        SizedBox(width: 6),
-                        Text(
-                          'Add New Vehicle',
-                          style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ],
-                    ),
+                    decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(0xFFCCE0FF)), borderRadius: BorderRadius.circular(16)),
+                    child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.add_rounded, color: Color(0xFF0066FF), size: 20), SizedBox(width: 6), Text('Add New Vehicle', style: TextStyle(color: Color(0xFF0066FF), fontWeight: FontWeight.bold, fontSize: 14))]),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // MENU ITEMS
-                const Text(
-                  'Account Settings',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
+                // ACCOUNT SETTINGS
+                const Text('Account Settings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                 const SizedBox(height: 10),
                 Container(
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFCCE0FF)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryBlue.withValues(alpha: 0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                  decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFCCE0FF))),
                   child: Column(
                     children: [
-                      _buildMenuItem(
-                        icon: Icons.history_rounded,
-                        title: 'Parking History',
-                        trailingText: '12 bookings',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ParkingHistoryScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                      _buildMenuItem(icon: Icons.history_rounded, title: 'Parking History', trailingText: '12 bookings', onTap: () {}),
                       _buildDivider(),
-                      _buildMenuItem(
-                        icon: Icons.card_membership_rounded,
-                        title: 'Subscriptions & Passes',
-                        trailingText: '1 Active',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SubscriptionsPassesScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                      _buildMenuItem(icon: Icons.card_membership_rounded, title: 'Subscriptions & Passes', trailingText: '1 Active', onTap: () {}),
                       _buildDivider(),
-                      _buildMenuItem(
-                        icon: Icons.notifications_none_rounded,
-                        title: 'Notifications',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NotificationSettingsScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                      _buildMenuItem(icon: Icons.notifications_none_rounded, title: 'Notifications', onTap: () {}),
                       _buildDivider(),
-                      _buildMenuItem(
-                        icon: Icons.security_rounded,
-                        title: 'Privacy & Security',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PrivacySecurityScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                      _buildMenuItem(icon: Icons.security_rounded, title: 'Privacy & Security', onTap: () {}),
                       _buildDivider(),
-                      _buildMenuItem(
-                        icon: Icons.help_outline_rounded,
-                        title: 'Help & Support',
-                        onTap: () {},
-                      ),
+                      _buildMenuItem(icon: Icons.help_outline_rounded, title: 'Help & Support', onTap: showSupportDialog),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // LOGOUT
-                Center(
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Log Out',
-                      style: TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -1961,41 +1770,25 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    String? trailingText,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildMenuItem({required IconData icon, required String title, String? trailingText, required VoidCallback onTap}) {
     return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, color: const Color(0xFF0066FF), size: 22),
-      title: Text(
-        title,
-        style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14, fontWeight: FontWeight.w500),
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      leading: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFFE6F0FF), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: const Color(0xFF0066FF), size: 20)),
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (trailingText != null)
-            Text(
-              trailingText,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-            ),
-          const SizedBox(width: 6),
-          const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF94A3B8), size: 14),
+          if (trailingText != null) Text(trailingText, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
+          const SizedBox(width: 8),
+          const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
         ],
       ),
+      onTap: onTap,
     );
   }
 
   Widget _buildDivider() {
-    return const Divider(
-      height: 1,
-      color: Color(0xFFE2E8F0),
-      indent: 16,
-      endIndent: 16,
-    );
+    return const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9), indent: 68, endIndent: 20);
   }
 }
 
@@ -3034,6 +2827,46 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+class HelpSupportScreen extends StatelessWidget {
+  const HelpSupportScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Help & Support')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const ExpansionTile(
+            title: Text('How do I book a parking slot?'),
+            children: [Padding(padding: EdgeInsets.all(16), child: Text('Select a location on the map, choose your duration, and click confirm.'))],
+          ),
+          const ExpansionTile(
+            title: Text('How to cancel a booking?'),
+            children: [Padding(padding: EdgeInsets.all(16), child: Text('Navigate to your History tab and click on the active booking to cancel.'))],
+          ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Text('Contact Us', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.phone, color: Colors.blue),
+            title: const Text('Call Support'),
+            subtitle: const Text('+977-9800000000'),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: const Icon(Icons.email, color: Colors.blue),
+            title: const Text('Email Us'),
+            subtitle: const Text('support@smartpark.np'),
+            onTap: () {},
+          ),
+        ],
       ),
     );
   }

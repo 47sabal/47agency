@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'dart:async';
 
 void main() {
@@ -14,8 +16,13 @@ class SmartParkingApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SmartPark Nepal',
       theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF060A16),
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF0F4F8),
+        primaryColor: const Color(0xFF0066FF),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0066FF),
+          brightness: Brightness.light,
+        ),
       ),
       home: const ParkingDashboard(),
     );
@@ -31,15 +38,22 @@ class ParkingDashboard extends StatefulWidget {
 
 class _ParkingDashboardState extends State<ParkingDashboard> {
   // --- UI State Variables ---
-  String selectedFacility = 'civil'; // Matches 'civil', 'bir', or 'passport'
+  String selectedFacility = 'civil';
   int walletBalance = 1240;
   String activeVehicle = 'BA 2 PA';
-  bool isScannerOpen = false;
   
   // Timer State
   int mins = 42;
   int secs = 18;
   Timer? _timer;
+
+  // Locations setup
+  final LatLng kathmanduCenter = const LatLng(27.700769, 85.315383);
+  final Map<String, LatLng> locations = const {
+    'civil': LatLng(27.700769, 85.315383),
+    'bir': LatLng(27.705100, 85.313800),
+    'passport': LatLng(27.693800, 85.314200),
+  };
 
   @override
   void initState() {
@@ -49,18 +63,15 @@ class _ParkingDashboardState extends State<ParkingDashboard> {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          if (secs > 0) {
-            secs--;
-          } else {
-            if (mins > 0) {
-              mins--;
-              secs = 59;
-            }
-          }
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        if (secs > 0) {
+          secs--;
+        } else {
+          secs = 59;
+          mins++;
+        }
+      });
     });
   }
 
@@ -70,176 +81,232 @@ class _ParkingDashboardState extends State<ParkingDashboard> {
     super.dispose();
   }
 
-  // --- Interaction Handlers ---
   void selectFacility(String id) {
     setState(() {
       selectedFacility = id;
     });
   }
 
-  void toggleVehicle() {
-    setState(() {
-      if (activeVehicle == 'BA 2 PA') {
-        activeVehicle = 'BA 3 CHA';
-      } else {
-        activeVehicle = 'BA 2 PA';
-      }
-    });
-  }
-
-  void topUpWallet() {
-    setState(() {
-      walletBalance += 500;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('⚡ Rs. 500 added to cyber-wallet balance!'),
-        backgroundColor: Color(0xFF00E5FF),
-      ),
-    );
-  }
-
-  void extendSession() {
-    setState(() {
-      mins += 15;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('⚡ Baseline session extended by 15 mins!'),
-        backgroundColor: Color(0xFF39FFC1),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // MAIN SCROLLABLE APP BODY
-          SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 110), // Padding to clear the custom nav bar
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 15),
-                    _buildHeader(),
-                    const SizedBox(height: 15),
-                    _buildRadarCard(),
-                    const SizedBox(height: 12),
-                    _buildHudStrip(),
-                    const SizedBox(height: 12),
-                    _buildSearchCta(),
-                    const SizedBox(height: 15),
-                    _buildSectionHeader(),
-                    const SizedBox(height: 8),
-                    _buildFacilitiesList(),
-                  ],
-                ),
-              ),
-            ),
+      backgroundColor: const Color(0xFFF0F4F8),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 18),
+              _buildActiveSessionCard(),
+              const SizedBox(height: 18),
+              _buildOpenStreetMapCard(),
+              const SizedBox(height: 22),
+              _buildFacilitiesSection(),
+              const SizedBox(height: 20),
+            ],
           ),
-
-          // FLOATING NEON NAVIGATION BAR
-          Positioned(
-            bottom: 20,
-            left: 16,
-            right: 16,
-            child: _buildBottomNavigationBar(),
-          ),
-
-          // FULLSCREEN HOLOGRAPHIC SCANNER MODAL
-          if (isScannerOpen) _buildScannerModal(),
-        ],
+        ),
       ),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
-
-  // --- WIDGET BUILDERS ---
 
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
           children: [
-            Row(
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFE6F0FF),
+                border: Border.all(color: const Color(0xFF0066FF), width: 1.5),
+              ),
+              child: const Icon(Icons.person, color: Color(0xFF0066FF)),
+            ),
+            const SizedBox(width: 12),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF39FFC1),
-                    shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: Color(0xFF39FFC1), blurRadius: 8)],
+                Text(
+                  'SMARTPARK NEPAL',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: Color(0xFF0066FF),
                   ),
                 ),
-                const SizedBox(width: 6),
-                const Text(
-                  'SYSTEM ONLINE',
+                Text(
+                  'Aarav Sharma',
                   style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 10,
-                    letterSpacing: 2,
-                    color: Color(0xFF00E5FF),
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Good evening, Sabal',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
           ],
         ),
         Container(
-          width: 40,
-          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF8C5CFF), Color(0xFF00E5FF)],
-            ),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFCCE0FF)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF8C5CFF).withOpacity(0.4),
-                blurRadius: 10,
-              )
+                color: const Color(0xFF0066FF).withOpacity(0.06),
+                blurRadius: 8,
+              ),
             ],
           ),
-          alignment: Alignment.center,
-          child: const Text(
-            'SG',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF060A16)),
+          child: Row(
+            children: [
+              const Icon(Icons.account_balance_wallet, color: Color(0xFF0066FF), size: 16),
+              const SizedBox(width: 6),
+              Text(
+                'Rs. $walletBalance',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Color(0xFF0066FF),
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRadarCard() {
+  Widget _buildActiveSessionCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D1526).withOpacity(0.9),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.16)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFCCE0FF)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00E5FF).withOpacity(0.08),
-            blurRadius: 25,
+            color: const Color(0xFF0066FF).withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'ACTIVE PARKING SESSION',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0066FF),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6F0FF),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  activeVehicle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0066FF),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Civil Mall - Slot B04',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Sundhara, Kathmandu',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}',
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0066FF),
+                    ),
+                  ),
+                  const Text(
+                    'DURATION',
+                    style: TextStyle(fontSize: 9, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOpenStreetMapCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xFFCCE0FF)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0066FF).withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           )
         ],
       ),
@@ -249,98 +316,68 @@ class _ParkingDashboardState extends State<ParkingDashboard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'KATHMANDU VALLEY GRID',
-                style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF8FA3C4)),
+                'KATHMANDU VALLEY MAP',
+                style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF64748B)),
               ),
               Text(
-                'LIVE SCAN',
-                style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF39FFC1)),
+                'LIVE MAP (OSM)',
+                style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF10B981), fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          
-          // Spinning Radar Screen
           SizedBox(
-            height: 140,
+            height: 180,
             width: double.infinity,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Radar Grid Lines (Circles)
-                Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.2)),
-                  ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: FlutterMap(
+                options: MapOptions(
+                  initialCenter: kathmanduCenter,
+                  initialZoom: 14.2,
                 ),
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.15)),
+                children: [
+                  // Standard light OpenStreetMap tile layer
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.smartpark.nepal',
                   ),
-                ),
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.1)),
+                  MarkerLayer(
+                    markers: locations.entries.map((entry) {
+                      final isSelected = selectedFacility == entry.key;
+                      return Marker(
+                        point: entry.value,
+                        width: 32,
+                        height: 32,
+                        child: GestureDetector(
+                          onTap: () => selectFacility(entry.key),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFF0066FF) : Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: const Color(0xFF0066FF),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF0066FF).withOpacity(0.3),
+                                  blurRadius: isSelected ? 8 : 2,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.local_parking,
+                              color: isSelected ? Colors.white : const Color(0xFF0066FF),
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
-                ),
-                // Crosshairs
-                Container(width: 140, height: 1, color: const Color(0xFF00E5FF).withOpacity(0.1)),
-                Container(width: 1, height: 140, color: const Color(0xFF00E5FF).withOpacity(0.1)),
-                
-                // Continuous Radar Sweep Line
-                const RadarSweep(),
-
-                // Center Pin Node
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(color: Colors.white, blurRadius: 10, spreadRadius: 2),
-                    ],
-                  ),
-                ),
-
-                // Map Blips
-                Positioned(
-                  top: 20,
-                  left: 100,
-                  child: RadarBlip(
-                    color: const Color(0xFF39FFC1),
-                    isActive: selectedFacility == 'civil',
-                    onTap: () => selectFacility('civil'),
-                  ),
-                ),
-                Positioned(
-                  top: 80,
-                  left: 45,
-                  child: RadarBlip(
-                    color: const Color(0xFF39FFC1),
-                    isActive: selectedFacility == 'bir',
-                    onTap: () => selectFacility('bir'),
-                  ),
-                ),
-                Positioned(
-                  top: 110,
-                  left: 165,
-                  child: RadarBlip(
-                    color: const Color(0xFFFFB347),
-                    isActive: selectedFacility == 'passport',
-                    onTap: () => selectFacility('passport'),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 10),
@@ -349,7 +386,7 @@ class _ParkingDashboardState extends State<ParkingDashboard> {
             children: [
               const Text(
                 '12 spots detected within 2km',
-                style: TextStyle(fontFamily: 'monospace', fontSize: 10.5, color: Color(0xFF39FFC1)),
+                style: TextStyle(fontFamily: 'monospace', fontSize: 10.5, color: Color(0xFF10B981), fontWeight: FontWeight.bold),
               ),
               InkWell(
                 onTap: () {},
@@ -357,16 +394,16 @@ class _ParkingDashboardState extends State<ParkingDashboard> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00E5FF).withOpacity(0.06),
-                    border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.3)),
+                    color: const Color(0xFFE6F0FF),
+                    border: Border.all(color: const Color(0xFFCCE0FF)),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
                     'Expand Map',
-                    style: TextStyle(fontSize: 10, color: Color(0xFF00E5FF), fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 10, color: Color(0xFF0066FF), fontWeight: FontWeight.bold),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ],
@@ -374,185 +411,54 @@ class _ParkingDashboardState extends State<ParkingDashboard> {
     );
   }
 
-  Widget _buildHudStrip() {
-    return Row(
+  Widget _buildFacilitiesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Countdown Chip
-        Expanded(
-          child: _buildHudChip(
-            label: 'ACTIVE SESSION',
-            value: '$mins:${secs < 10 ? '0$secs' : secs}',
-            isActive: true,
-            onTap: extendSession,
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Wallet Chip
-        Expanded(
-          child: _buildHudChip(
-            label: 'WALLET',
-            value: '₨$walletBalance',
-            onTap: topUpWallet,
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Vehicle Chip
-        Expanded(
-          child: _buildHudChip(
-            label: 'VEHICLE',
-            value: activeVehicle,
-            onTap: toggleVehicle,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHudChip({
-    required String label,
-    required String value,
-    bool isActive = false,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0D1526),
-          border: Border.all(
-            color: isActive ? const Color(0xFF39FFC1) : const Color(0xFF00E5FF).withOpacity(0.16),
-          ),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 8.5,
-                letterSpacing: 1,
-                color: Color(0xFF4D6082),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
+              'PARKING LOCATIONS',
               style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isActive ? const Color(0xFF39FFC1) : Colors.white,
+                color: Color(0xFF64748B),
+                letterSpacing: 0.8,
               ),
+            ),
+            Text(
+              'View All',
+              style: TextStyle(fontSize: 12, color: Color(0xFF0066FF), fontWeight: FontWeight.bold),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSearchCta() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF00E5FF).withOpacity(0.12),
-            const Color(0xFF8C5CFF).withOpacity(0.12),
-          ],
-        ),
-        border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF00E5FF), Color(0xFF8C5CFF)],
-              ),
-            ),
-            child: const Icon(Icons.search, color: Color(0xFF060A16), size: 18),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Where are you parking?',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'TAP TO SEARCH · BOOK · SCAN',
-                  style: TextStyle(fontFamily: 'monospace', fontSize: 9, color: Color(0xFF8FA3C4)),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right, color: Color(0xFF00E5FF)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader() {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'NEARBY FACILITIES',
-          style: TextStyle(
-            fontFamily: 'monospace',
-            fontSize: 11.5,
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          'VIEW ALL',
-          style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF00E5FF)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFacilitiesList() {
-    return Column(
-      children: [
+        const SizedBox(height: 12),
         _buildFacilityCard(
           id: 'civil',
           name: 'Civil Mall Parking',
-          meta: 'SUNDHARA · 0.6 KM',
-          price: 'Rs. 60/hr',
-          slots: '18 OPEN',
-          isLow: false,
+          location: 'Sundhara, Kathmandu',
+          slots: '18 slots open',
+          rate: 'Rs. 60/hr',
+          distance: '0.4 km',
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         _buildFacilityCard(
           id: 'bir',
           name: 'Bir Hospital Lot B',
-          meta: 'MAHABOUDHA · 1.1 KM',
-          price: 'Rs. 40/hr',
-          slots: '9 OPEN',
-          isLow: false,
+          location: 'Kanti Path, Kathmandu',
+          slots: '9 slots open',
+          rate: 'Rs. 40/hr',
+          distance: '0.9 km',
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         _buildFacilityCard(
           id: 'passport',
-          name: 'Department of Passports',
-          meta: 'TRIPURESHWOR · 1.4 KM',
-          price: 'Rs. 50/hr',
-          slots: '2 LEFT',
-          isLow: true,
+          name: 'Dept of Passports',
+          location: 'Tripureshwor, Kathmandu',
+          slots: '2 slots open',
+          rate: 'Rs. 50/hr',
+          distance: '1.4 km',
         ),
       ],
     );
@@ -561,80 +467,84 @@ class _ParkingDashboardState extends State<ParkingDashboard> {
   Widget _buildFacilityCard({
     required String id,
     required String name,
-    required String meta,
-    required String price,
+    required String location,
     required String slots,
-    required bool isLow,
+    required String rate,
+    required String distance,
   }) {
-    final isSelected = selectedFacility == id;
+    final bool isSelected = selectedFacility == id;
 
     return InkWell(
       onTap: () => selectFacility(id),
       borderRadius: BorderRadius.circular(16),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF121C33) : const Color(0xFF0D1526),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF00E5FF) : Colors.transparent,
-          ),
+          color: isSelected ? const Color(0xFFE6F0FF) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected
-              ? [BoxShadow(color: const Color(0xFF00E5FF).withOpacity(0.12), blurRadius: 10)]
-              : [],
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0066FF) : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.5 : 1,
+          ),
+          boxShadow: [
+            if (!isSelected)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+          ],
         ),
         child: Row(
           children: [
-            // Colored Status Bar
             Container(
-              width: 3.5,
-              height: 38,
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isLow ? const Color(0xFFFFB347) : const Color(0xFF39FFC1),
-                borderRadius: BorderRadius.circular(2),
+                color: isSelected ? const Color(0xFF0066FF) : const Color(0xFFE6F0FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.local_parking,
+                color: isSelected ? Colors.white : const Color(0xFF0066FF),
+                size: 22,
               ),
             ),
             const SizedBox(width: 12),
-            // Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
-                    meta,
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 9.5, color: Color(0xFF8FA3C4)),
+                    '$location • $distance',
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                   ),
                 ],
               ),
             ),
-            // Price / Slots
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  price,
+                  slots,
                   style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                    color: Color(0xFF00E5FF),
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF10B981),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
-                  slots,
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 9.5,
-                    color: isLow ? const Color(0xFFFFB347) : const Color(0xFF39FFC1),
-                    fontWeight: FontWeight.bold,
-                  ),
+                  rate,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                 ),
               ],
             ),
@@ -644,311 +554,32 @@ class _ParkingDashboardState extends State<ParkingDashboard> {
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      height: 64,
-      decoration: BoxDecoration(
-        color: const Color(0xFF0A1020).withOpacity(0.95),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.25)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home, 'HOME', true),
-          _buildNavItem(Icons.map, 'MAP', false, onTap: () {}),
-          
-          // Action scanner Center Button
-          GestureDetector(
-            onTap: () => setState(() => isScannerOpen = true),
-            child: Transform.translate(
-              offset: const Offset(0, -10),
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF00E5FF), Color(0xFF8C5CFF)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(color: Color(0xFF00E5FF), blurRadius: 15),
-                  ],
-                ),
-                child: const Icon(Icons.qr_code_scanner, color: Color(0xFF060A16), size: 22),
-              ),
-            ),
-          ),
-          
-          _buildNavItem(Icons.wallet, 'WALLET', false, onTap: topUpWallet),
-          _buildNavItem(Icons.person, 'PROFILE', false, onTap: () {}),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isActive, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: isActive ? const Color(0xFF00E5FF) : const Color(0xFF4D6082), size: 20),
-          const SizedBox(height: 3),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 8.5,
-              color: isActive ? const Color(0xFF00E5FF) : const Color(0xFF4D6082),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScannerModal() {
-    return Container(
-      color: const Color(0xFF04070F).withOpacity(0.96),
-      width: double.infinity,
-      height: double.infinity,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Holographic Scanning Box
-          Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFF00E5FF), width: 2),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF00E5FF).withOpacity(0.3),
-                  blurRadius: 20,
-                )
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const LaserScanLine(),
-                Icon(Icons.qr_code, color: const Color(0xFF00E5FF).withOpacity(0.4), size: 100),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'SCANNING PASS',
-            style: TextStyle(
-              fontFamily: 'Orbitron',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'ALIGN THE GATE QR BARCODE WITHIN THE FRAME',
-            style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF8FA3C4)),
-          ),
-          const SizedBox(height: 24),
-          OutlinedButton(
-            onPressed: () => setState(() => isScannerOpen = false),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFF00E5FF)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-            ),
-            child: const Text(
-              'ABORT SCAN',
-              style: TextStyle(color: Color(0xFF00E5FF), fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// --- HELPER ANIMATION WIDGETS ---
-
-class RadarSweep extends StatefulWidget {
-  const RadarSweep({super.key});
-
-  @override
-  State<RadarSweep> createState() => _RadarSweepState();
-}
-
-class _RadarSweepState extends State<RadarSweep> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return RotationTransition(
-      turns: _controller,
-      child: Container(
-        width: 140,
-        height: 140,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: SweepGradient(
-            colors: [
-              Color(0x8C00E5FF),
-              Color(0x0000E5FF),
-            ],
-            stops: [0.15, 1.0],
-          ),
+  Widget _buildBottomNav() {
+    return BottomNavigationBar(
+      currentIndex: 0,
+      selectedItemColor: const Color(0xFF0066FF),
+      unselectedItemColor: const Color(0xFF94A3B8),
+      backgroundColor: Colors.white,
+      type: BottomNavigationBarType.fixed,
+      elevation: 8,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.dashboard_rounded),
+          label: 'Dashboard',
         ),
-      ),
-    );
-  }
-}
-
-class RadarBlip extends StatefulWidget {
-  final Color color;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const RadarBlip({
-    super.key,
-    required this.color,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  State<RadarBlip> createState() => _RadarBlipState();
-}
-
-class _RadarBlipState extends State<RadarBlip> with SingleTickerProviderStateMixin {
-  late AnimationController _rippleController;
-
-  @override
-  void initState() {
-    super.initState();
-    _rippleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _rippleController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: AnimatedBuilder(
-        animation: _rippleController,
-        builder: (context, child) {
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              // Ripple ring animation
-              Container(
-                width: 20 * (1.0 + _rippleController.value * 0.8),
-                height: 20 * (1.0 + _rippleController.value * 0.8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: widget.color.withOpacity(1.0 - _rippleController.value),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              // Center solid node
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: widget.isActive ? 14 : 9,
-                height: widget.isActive ? 14 : 9,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: widget.color,
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.color,
-                      blurRadius: widget.isActive ? 12 : 4,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class LaserScanLine extends StatefulWidget {
-  const LaserScanLine({super.key});
-
-  @override
-  State<LaserScanLine> createState() => _LaserScanLineState();
-}
-
-class _LaserScanLineState extends State<LaserScanLine> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
-    _animation = Tween<double>(begin: 4, end: 194).animate(_controller);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Positioned(
-          top: _animation.value,
-          left: 4,
-          right: 4,
-          child: Container(
-            height: 3,
-            decoration: const BoxDecoration(
-              color: Color(0xFF00E5FF),
-              boxShadow: [
-                BoxShadow(color: Color(0xFF00E5FF), blurRadius: 10, spreadRadius: 1),
-              ],
-            ),
-          ),
-        );
-      },
+        BottomNavigationBarItem(
+          icon: Icon(Icons.map_rounded),
+          label: 'Map',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.qr_code_scanner_rounded),
+          label: 'Scan',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_rounded),
+          label: 'Profile',
+        ),
+      ],
     );
   }
 }

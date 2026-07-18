@@ -327,8 +327,7 @@ io.on('connection', (socket) => {
 });
 
 // --- SERVER LISTENER ---
-// Incorporates port assignments alongside the exact log instruction requested from index.js[cite: 4]
 server.listen(PORT, () => {
   console.log(`🚀 SmartPark Integrated Server running on port ${PORT}`);
-  console.log("connected to server at 2000"); // Structural console output from index.js[cite: 4]
+  console.log(`connected to server at ${PORT}`); 
 });

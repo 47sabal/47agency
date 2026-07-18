@@ -4,8 +4,10 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import 'login.dart';
 
-void main() {
+
+void main() async{
   runApp(const SmartParkingApp());
 }
 
@@ -1599,6 +1601,9 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     const Color cardColor = Colors.white;
     const Color backgroundColor = Color(0xFFF0F4F8);
+    const Color primaryBlue = Color(0xFF0066FF);
+    const Color textColor = Color(0xFF1E293B);
+    const Color subtitleColor = Color(0xFF64748B);
 
     // Function to show contact info
     void showSupportDialog() {
@@ -1636,131 +1641,300 @@ class ProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 10),
-                // PROFILE HEADER
                 Row(
-                  children: [
-                    Stack(
-                      children: [
-                        const CircleAvatar(
-                          radius: 38,
-                          backgroundColor: Color(0xFFE6F0FF),
-                          child: Icon(Icons.person, size: 40, color: Color(0xFF0066FF)),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF10B981),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.check, size: 14, color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Aarav Sharma', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                        const Text('aarav.sharma@example.com', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(color: const Color(0xFFE6F0FF), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFCCE0FF))),
-                          child: const Text('Verified Driver', style: TextStyle(color: Color(0xFF0066FF), fontSize: 11, fontWeight: FontWeight.w600)),
-                        ),
-                      ],
-                    ),
-                  ],
+  children: [
+    Stack(
+      children: [
+        const CircleAvatar(
+          radius: 38,
+          backgroundColor: Color(0xFFE6F0FF),
+          child: Icon(Icons.person, size: 40, color: Color(0xFF0066FF)),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.all(3),
+            decoration: const BoxDecoration(
+              color: Color(0xFF10B981),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.check, size: 14, color: Colors.white),
+          ),
+        ),
+      ],
+    ),
+    const SizedBox(width: 16),
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Aarav Sharma',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(height: 2),
+        const Text(
+          'aarav.sharma@example.com',
+          style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE6F0FF),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFCCE0FF)),
+          ),
+          child: const Text(
+            'Verified Driver',
+            style: TextStyle(
+              color: Color(0xFF0066FF),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    ),
+  ],
+),
+
+                const SizedBox(height: 24),
+
+                // HELP & SUPPORT (Standalone Item)
+                Container(
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFCCE0FF)),
+                  ),
+                  child: _buildMenuItem(
+                    icon: Icons.help_outline_rounded,
+                    title: 'Help & Support',
+                    onTap: () => showSupportDialog(),
+                  ),
                 ),
+
                 const SizedBox(height: 24),
 
                 // DIGITAL WALLET CARD
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFF0066FF), Color(0xFF0044B3)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [BoxShadow(color: const Color(0xFF0066FF).withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 8))],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('SmartPark Wallet', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
-                          Icon(Icons.account_balance_wallet_rounded, color: Colors.white.withValues(alpha: 0.9)),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Text('Rs. 1,240.00', style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.add_circle_outline, size: 18),
-                          label: const Text('Top Up', style: TextStyle(fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF0066FF), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+Container(
+  width: double.infinity,
+  padding: const EdgeInsets.all(20),
+  decoration: BoxDecoration(
+    gradient: const LinearGradient(
+      colors: [Color(0xFF0066FF), Color(0xFF0044B3)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    borderRadius: BorderRadius.circular(24),
+    boxShadow: [
+      BoxShadow(
+        color: const Color(0xFF0066FF).withValues(alpha: 0.25),
+        blurRadius: 16,
+        offset: const Offset(0, 8),
+      )
+    ],
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'SmartPark Wallet',
+            style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+          ),
+          Icon(Icons.account_balance_wallet_rounded, color: Colors.white.withValues(alpha: 0.9)),
+        ],
+      ),
+      const SizedBox(height: 10),
+      const Text(
+        'Rs. 1,240.00',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 30,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+        ],
+      )
+    ],
+  ),
+),
 
-                const SizedBox(height: 24),
+// MY GARAGE
+const Text(
+  'My Garage',
+  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+),
+const SizedBox(height: 10),
+Container(
+  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: const Color(0xFFCCE0FF)),
+    boxShadow: [
+      BoxShadow(
+        color: const Color(0xFF0066FF).withValues(alpha: 0.04),
+        blurRadius: 10,
+        offset: const Offset(0, 2),
+      ),
+    ],
+  ),
+  child: Row(
+    children: [
+      Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE6F0FF),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF0066FF), size: 26),
+      ),
+      const SizedBox(width: 14),
+      const Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Active Vehicle', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+            SizedBox(height: 2),
+            Text('BA 2 PA', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+      ),
+      IconButton(
+        onPressed: () {},
+        icon: const Icon(Icons.edit_rounded, color: Color(0xFF0066FF), size: 20),
+      )
+    ],
+  ),
+),
+const SizedBox(height: 10),
+InkWell(
+  onTap: () {},
+  borderRadius: BorderRadius.circular(16),
+  child: Container(
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: const Color(0xFFCCE0FF)),
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.add_rounded, color: Color(0xFF0066FF), size: 20),
+        SizedBox(width: 6),
+        Text(
+          'Add New Vehicle',
+          style: TextStyle(color: Color(0xFF0066FF), fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+      ],
+    ),
+  ),
+),
+                
+                // ACCOUNT SETTINGS HEADER
+const Text(
+  'Account Settings',
+  style: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: Color(0xFF1E293B), // textColor
+  ),
+),
+const SizedBox(height: 10),
 
-                // MY GARAGE
-                const Text('My Garage', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFCCE0FF))),
-                  child: Row(
-                    children: [
-                      Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFFE6F0FF), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF0066FF), size: 26)),
-                      const SizedBox(width: 14),
-                      const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Active Vehicle', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)), Text('BA 2 PA', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 16))])),
-                      IconButton(onPressed: () {}, icon: const Icon(Icons.edit_rounded, color: Color(0xFF0066FF), size: 20))
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                InkWell(
-                  onTap: () {},
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(0xFFCCE0FF)), borderRadius: BorderRadius.circular(16)),
-                    child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.add_rounded, color: Color(0xFF0066FF), size: 20), SizedBox(width: 6), Text('Add New Vehicle', style: TextStyle(color: Color(0xFF0066FF), fontWeight: FontWeight.bold, fontSize: 14))]),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // ACCOUNT SETTINGS
-                const Text('Account Settings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                const SizedBox(height: 10),
-                Container(
-                  decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFCCE0FF))),
-                  child: Column(
-                    children: [
-                      _buildMenuItem(icon: Icons.history_rounded, title: 'Parking History', trailingText: '12 bookings', onTap: () {}),
-                      _buildDivider(),
-                      _buildMenuItem(icon: Icons.card_membership_rounded, title: 'Subscriptions & Passes', trailingText: '1 Active', onTap: () {}),
-                      _buildDivider(),
-                      _buildMenuItem(icon: Icons.notifications_none_rounded, title: 'Notifications', onTap: () {}),
-                      _buildDivider(),
-                      _buildMenuItem(icon: Icons.security_rounded, title: 'Privacy & Security', onTap: () {}),
-                      _buildDivider(),
-                      _buildMenuItem(icon: Icons.help_outline_rounded, title: 'Help & Support', onTap: showSupportDialog),
-                    ],
-                  ),
-                ),
+// SETTINGS LIST CONTAINER
+Container(
+  decoration: BoxDecoration(
+    color: Colors.white, // cardColor
+    borderRadius: BorderRadius.circular(20),
+    border: Border.all(color: const Color(0xFFCCE0FF)),
+    boxShadow: [
+      BoxShadow(
+        color: const Color(0xFF0066FF).withValues(alpha: 0.04), // primaryBlue
+        blurRadius: 10,
+        offset: const Offset(0, 2),
+      ),
+    ],
+  ),
+  child: Column(
+    children: [
+      _buildMenuItem(
+        icon: Icons.history_rounded,
+        title: 'Parking History',
+        trailingText: '12 bookings',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ParkingHistoryScreen(),
+            ),
+          );
+        },
+      ),
+      _buildDivider(),
+      _buildMenuItem(
+        icon: Icons.card_membership_rounded,
+        title: 'Subscriptions & Passes',
+        trailingText: '1 Active',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SubscriptionsPassesScreen(),
+            ),
+          );
+        },
+      ),
+      _buildDivider(),
+      _buildMenuItem(
+        icon: Icons.notifications_none_rounded,
+        title: 'Notifications',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NotificationSettingsScreen(),
+            ),
+          );
+        },
+      ),
+      _buildDivider(),
+      _buildMenuItem(
+        icon: Icons.security_rounded,
+        title: 'Privacy & Security',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PrivacySecurityScreen(),
+            ),
+          );
+        },
+      ),
+      _buildDivider(),
+      _buildMenuItem(
+        icon: Icons.help_outline_rounded,
+        title: 'Help & Support',
+        onTap: () {}, // This is where you would place your contact logic
+      ),
+    ],
+  ),
+),
+                
                 const SizedBox(height: 20),
               ],
             ),
@@ -1770,26 +1944,61 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem({required IconData icon, required String title, String? trailingText, required VoidCallback onTap}) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      leading: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFFE6F0FF), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: const Color(0xFF0066FF), size: 20)),
-      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (trailingText != null) Text(trailingText, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
-          const SizedBox(width: 8),
-          const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
-        ],
+  // HELPER: BUILD MENU ITEM
+Widget _buildMenuItem({
+  required IconData icon,
+  required String title,
+  String? trailingText,
+  required VoidCallback onTap,
+}) {
+  return ListTile(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+    leading: Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6F0FF),
+        borderRadius: BorderRadius.circular(10),
       ),
-      onTap: onTap,
-    );
-  }
+      child: Icon(icon, color: const Color(0xFF0066FF), size: 20),
+    ),
+    title: Text(
+      title,
+      style: const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF1E293B),
+      ),
+    ),
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (trailingText != null)
+          Text(
+            trailingText,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        const SizedBox(width: 8),
+        const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+      ],
+    ),
+    onTap: onTap,
+  );
+}
 
-  Widget _buildDivider() {
-    return const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9), indent: 68, endIndent: 20);
-  }
+// HELPER: BUILD DIVIDER
+Widget _buildDivider() {
+  return const Divider(
+    height: 1,
+    thickness: 1,
+    color: Color(0xFFF1F5F9), // Very light grey, subtle
+    indent: 68, // Aligns with the title text
+    endIndent: 20,
+  );
+}
 }
 // --- PARKING HISTORY SCREEN MODULE ---
 class ParkingHistoryScreen extends StatefulWidget {
